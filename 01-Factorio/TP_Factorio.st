@@ -31,11 +31,11 @@ cantidadDeMenasDeCarbon
 cantidadDeMenasDeHierro
 	^contenido count: [:cadaElemento | cadaElemento = 'una mena de hierro'].! !
 
-!Caja class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:26:57'!
+!Caja class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:38:57'!
 initializeCollaboratorsFromFile
 	"Auto generated method for loading purposes - Do not modify it"
 
-	contenido := ((OrderedCollection new) add: 'una mena de carbon'; add: 'una mena de hierro'; yourself).! !
+	contenido := ((OrderedCollection new) add: 'una mena de carbon'; yourself).! !
 
 !Caja class methodsFor: 'as yet unclassified' stamp: 'MC 5/4/2021 22:52:37'!
 recibirMenas: coleccionDeMenas
@@ -67,7 +67,7 @@ cantidadDeMenas
 destino: nuevoDestino
 	destino := nuevoDestino.! !
 
-!CintaA class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:26:57'!
+!CintaA class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:38:57'!
 initializeCollaboratorsFromFile
 	"Auto generated method for loading purposes - Do not modify it"
 
@@ -78,18 +78,13 @@ initializeCollaboratorsFromFile
 recibirMenas: coleccionDeMenas
 	^contenido addAll: coleccionDeMenas.! !
 
-!CintaA class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:08:37'!
+!CintaA class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:20:05'!
 transportarContenido
-	"Trabsporta lo almacenado en contenido"
+	"Transporta lo almacenado en contenido"
 	|contenidoActual|
 	contenidoActual := contenido.
 	self vaciar.
 	destino recibirMenas: contenidoActual.! !
-
-!CintaA class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:07:44'!
-transportarMenas: coleccionDeMenas
-	"Transporta las menas recibidas directamente sin almacenarlas"
-	destino recibirMenas: coleccionDeMenas.! !
 
 !CintaA class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:04:30'!
 vaciar
@@ -117,7 +112,7 @@ cantidadDeMenas
 destino: nuevoDestino
 	destino := nuevoDestino.! !
 
-!CintaB class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:26:57'!
+!CintaB class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:38:57'!
 initializeCollaboratorsFromFile
 	"Auto generated method for loading purposes - Do not modify it"
 
@@ -128,18 +123,13 @@ initializeCollaboratorsFromFile
 recibirMenas: coleccionDeMenas
 	^contenido addAll: coleccionDeMenas.! !
 
-!CintaB class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:11:32'!
+!CintaB class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:36:35'!
 transportarContenido
-	"Trabsporta lo almacenado en contenido"
+	"Transporta lo almacenado en contenido"
 	|contenidoActual|
 	contenidoActual := contenido.
 	self vaciar.
 	destino recibirMenas: contenidoActual.! !
-
-!CintaB class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:11:32'!
-transportarMenas: coleccionDeMenas
-	"Transporta las menas recibidas directamente sin almacenarlas"
-	destino recibirMenas: coleccionDeMenas.! !
 
 !CintaB class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:11:32'!
 vaciar
@@ -196,7 +186,7 @@ extraer
 	self sacarEnergia: energiaConsumida.
 	^destino recibirMenas: (self conjuntoDeMenasDeCarbonCantidad: cantidadDeMenas).! !
 
-!ExtractorDeCarbon class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:26:57'!
+!ExtractorDeCarbon class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:38:57'!
 initializeCollaboratorsFromFile
 	"Auto generated method for loading purposes - Do not modify it"
 
@@ -266,7 +256,7 @@ extraer
 	self sacarEnergia: energiaConsumida.
 	^destino recibirMenas: (self conjuntoDeMenasDeHierroCantidad: cantidadDeMenas).! !
 
-!ExtractorDeHierro class methodsFor: 'as yet unclassified' stamp: 'ML 5/7/2021 18:26:57'!
+!ExtractorDeHierro class methodsFor: 'as yet unclassified' stamp: 'MC 5/8/2021 22:38:57'!
 initializeCollaboratorsFromFile
 	"Auto generated method for loading purposes - Do not modify it"
 
