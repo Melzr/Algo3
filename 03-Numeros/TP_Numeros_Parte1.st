@@ -135,16 +135,10 @@ Object subclass: #Numero
 	poolDictionaries: ''
 	category: 'Numeros-Parte1-Ejercicio'!
 
-!Numero methodsFor: 'arithmetic operations' stamp: 'LL 9/13/2020 16:33:53'!
-* aMultiplier 
+!Numero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:00:57'!
+* aMultiplier
 
-	type = #Entero ifTrue:	
-		[ ^self class with: value * aMultiplier integerValue ].
-		
-	type = #Fraccion ifTrue:
-		[ ^self class with: (numerator * aMultiplier numerator) over: (denominator * aMultiplier denominator) ].
-		
-	self error: 'Tipo de número no soportado'
+	self subclassResponsibility.
 	! !
 
 !Numero methodsFor: 'arithmetic operations' stamp: 'MC 5/27/2021 00:18:42'!
@@ -173,44 +167,10 @@ isZero
 	self subclassResponsibility.! !
 
 
-!Numero methodsFor: 'initialization' stamp: 'MC 5/27/2021 00:44:01'!
-initializeWith: aValue
 
-	self subclassResponsibility.! !
-
-!Numero methodsFor: 'initialization' stamp: 'MC 5/26/2021 23:01:46'!
-initializeWith: aNumerator over: aDenominator
-
-	self subclassResponsibility.! !
-
-
-!Numero methodsFor: 'accessing' stamp: 'NR 9/8/2019 20:59:46'!
-denominator
-
-	^denominator! !
-
-!Numero methodsFor: 'accessing' stamp: 'NR 9/8/2019 20:59:52'!
-numerator
-
-	^numerator! !
-
-!Numero methodsFor: 'accessing' stamp: 'NR 9/8/2019 21:55:04'!
-type
-	
-	^type! !
-
-
-!Numero methodsFor: 'printing' stamp: 'NR 9/8/2019 21:59:58'!
+!Numero methodsFor: 'printing' stamp: 'ML 5/27/2021 20:22:32'!
 printOn: aStream
-	
-	type = #Entero ifTrue:
-		[ aStream print: value ].
-	
-	type = #Fraccion ifTrue:
-		[ aStream 
-			print: numerator;
-			nextPut: $/;
-			print: denominator ].! !
+	self subclassResponsibility.! !
 
 
 !Numero methodsFor: 'comparing' stamp: 'MC 5/27/2021 00:24:50'!
@@ -218,15 +178,13 @@ printOn: aStream
 
 	self subclassResponsibility.! !
 
-!Numero methodsFor: 'comparing' stamp: 'NR 9/8/2019 22:00:49'!
+!Numero methodsFor: 'comparing' stamp: 'ML 5/27/2021 20:19:40'!
 hash
-	type = #Entero ifTrue:
-		[ ^value hash ].
-	type = #Fraccion ifTrue:
-		[ ^(numerator hash / denominator hash) hash ].! !
+
+	self subclassResponsibility.! !
 
 
-!Numero methodsFor: 'arithmetic operations - private' stamp: 'MC 5/26/2021 23:59:16'!
+!Numero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/27/2021 20:19:15'!
 // aDivisor
 
 	self subclassResponsibility.! !
@@ -256,7 +214,7 @@ with: aValue
 	
 	^(Entero new) initializeWith: aValue! !
 
-!Numero class methodsFor: 'instance creation' stamp: 'MC 5/27/2021 01:11:33'!
+!Numero class methodsFor: 'instance creation' stamp: 'ML 5/27/2021 19:59:23'!
 with: aDividend over: aDivisor
 
 	| greatestCommonDivisor numerator denominator |
@@ -315,10 +273,10 @@ initializeWith: aValue
 	value := aValue.! !
 
 
-!Entero methodsFor: 'arithmetic operations' stamp: 'MC 5/27/2021 00:19:06'!
+!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:17:41'!
 * aMultiplier 
 
-	^ self class with: value * aMultiplier integerValue.! !
+	^self class with: (self integerValue * (aMultiplier integerValue)).! !
 
 !Entero methodsFor: 'arithmetic operations' stamp: 'MC 5/27/2021 00:14:06'!
 + anAdder 
@@ -349,6 +307,17 @@ greatestCommonDivisorWith: anEntero
 	(anObject isKindOf: self class) ifTrue: [ ^value = anObject integerValue ].
 	^ false.
 ! !
+
+!Entero methodsFor: 'comparing' stamp: 'ML 5/27/2021 20:20:13'!
+hash
+	^value hash .
+! !
+
+
+!Entero methodsFor: 'printing' stamp: 'ML 5/27/2021 20:22:58'!
+printOn: aStream
+	
+	 aStream print: value.! !
 
 
 !classDefinition: #Fraccion category: 'Numeros-Parte1-Ejercicio'!
@@ -390,7 +359,7 @@ initializeWith: aNumerator over: aDenominator
 
 	^ self class with: (numerator * aMultiplier numerator) over: (denominator * aMultiplier denominator).! !
 
-!Fraccion methodsFor: 'arithmetic operations' stamp: 'MC 5/27/2021 00:14:52'!
+!Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:05:00'!
 + anAdder 
 
 	| newNumerator newDenominator |
@@ -418,9 +387,34 @@ greatestCommonDivisorWith: aFraccion
 	self error: 'Tipo de número no soportado'.! !
 
 
+!Fraccion methodsFor: 'accessing' stamp: 'ML 5/27/2021 20:06:24'!
+denominator
+
+	^denominator.! !
+
+!Fraccion methodsFor: 'accessing' stamp: 'ML 5/27/2021 20:06:16'!
+numerator
+
+	^numerator.! !
+
+
 !Fraccion methodsFor: 'comparing' stamp: 'MC 5/27/2021 00:24:38'!
 = anObject
 
 	(anObject isKindOf: self class) ifTrue: [ ^(numerator * anObject denominator) = (denominator * anObject numerator) ].
 	^ false.
 ! !
+
+!Fraccion methodsFor: 'comparing' stamp: 'ML 5/27/2021 20:20:40'!
+hash
+
+	 ^(numerator hash / denominator hash) hash .! !
+
+
+!Fraccion methodsFor: 'printing' stamp: 'ML 5/27/2021 20:23:51'!
+printOn: aStream
+
+	 aStream 
+		print: numerator;
+		nextPut: $/;
+		print: denominator.! !
