@@ -167,7 +167,6 @@ isZero
 	self subclassResponsibility.! !
 
 
-
 !Numero methodsFor: 'printing' stamp: 'ML 5/27/2021 20:22:32'!
 printOn: aStream
 	self subclassResponsibility.! !
@@ -273,12 +272,12 @@ initializeWith: aValue
 	value := aValue.! !
 
 
-!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:17:41'!
+!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:47:50'!
 * aMultiplier 
 
-	^self class with: (self integerValue * (aMultiplier integerValue)).! !
+	^self class with: (self integerValue * aMultiplier integerValue).! !
 
-!Entero methodsFor: 'arithmetic operations' stamp: 'MC 5/27/2021 00:14:06'!
+!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 20:55:33'!
 + anAdder 
 	
 	^ self class with: value + anAdder integerValue.! !
