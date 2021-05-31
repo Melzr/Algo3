@@ -346,10 +346,30 @@ beAddedToFraccion: aFraccionAugend
 
 	self subclassResponsibility ! !
 
+!Numero methodsFor: 'private' stamp: 'ML 5/30/2021 19:39:38'!
+divideEntero: anEnteroDividend
+
+	self subclassResponsibility ! !
+
+!Numero methodsFor: 'private' stamp: 'ML 5/30/2021 19:40:38'!
+divideFraccion: aFraccionDividend
+
+	self subclassResponsibility ! !
+
 !Numero methodsFor: 'private' stamp: 'HernanWilkinson 5/7/2016 22:48'!
 invalidNumberType
 
 	self error: self class invalidNumberTypeErrorDescription! !
+
+!Numero methodsFor: 'private' stamp: 'ML 5/30/2021 19:40:59'!
+multiplyEntero: anEnteroMultiplier
+
+	self subclassResponsibility ! !
+
+!Numero methodsFor: 'private' stamp: 'ML 5/30/2021 19:41:12'!
+multiplyFraccion: aFraccionMultiplier
+
+	self subclassResponsibility ! !
 
 !Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:28:48'!
 substractFromEntero: anEnteroMinuend
@@ -358,26 +378,6 @@ substractFromEntero: anEnteroMinuend
 
 !Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:28:33'!
 substractFromFraccion: aFraccionMinuend
-
-	self subclassResponsibility ! !
-
-!Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:28:13'!
-useAsDivisorToDivideEntero: anEnteroDividend
-
-	self subclassResponsibility ! !
-
-!Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:27:57'!
-useAsDivisorToDivideFraccion: aFraccionDividend
-
-	self subclassResponsibility ! !
-
-!Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:27:40'!
-useAsMultiplicandToMultiplyEntero: anEnteroMultiplier
-
-	self subclassResponsibility ! !
-
-!Numero methodsFor: 'private' stamp: 'ML 5/28/2021 19:27:18'!
-useAsMultiplicandToMultiplyFraccion: aFraccionMultiplier
 
 	self subclassResponsibility ! !
 
@@ -404,10 +404,10 @@ Numero subclass: #Entero
 	poolDictionaries: ''
 	category: 'Numeros-Parte2-Ejercicio'!
 
-!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/28/2021 18:56:41'!
+!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/30/2021 19:42:30'!
 * aMultiplier 
 	
-	^aMultiplier useAsMultiplicandToMultiplyEntero: self
+	^aMultiplier multiplyEntero: self
 	! !
 
 !Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/27/2021 23:37:53'!
@@ -421,10 +421,10 @@ Numero subclass: #Entero
 	^aSubtrahend substractFromEntero: self
 	! !
 
-!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/28/2021 00:06:36'!
+!Entero methodsFor: 'arithmetic operations' stamp: 'ML 5/30/2021 19:41:44'!
 / aDivisor 
 	
-	^aDivisor useAsDivisorToDivideEntero: self.	! !
+	^aDivisor divideEntero: self.	! !
 
 !Entero methodsFor: 'arithmetic operations' stamp: 'HAW 9/24/2018 08:47:50'!
 fibonacci
@@ -503,10 +503,30 @@ beAddedToFraccion: aFraccionAugend
 
 	^((self * aFraccionAugend denominator + aFraccionAugend numerator) / aFraccionAugend denominator). ! !
 
+!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:41:44'!
+divideEntero: anEnteroDividend
+
+	^Fraccion with: anEnteroDividend over: self ! !
+
+!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:42:16'!
+divideFraccion: aFraccionDividend
+
+	^(aFraccionDividend numerator / (aFraccionDividend denominator * self))! !
+
 !Entero methodsFor: 'arithmetic operations - private' stamp: 'HernanWilkinson 5/7/2016 21:00'!
 greatestCommonDivisorWith: anEntero 
 	
 	^self class with: (value gcd: anEntero integerValue)! !
+
+!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:42:30'!
+multiplyEntero: anEnteroMultiplier
+
+	^self class with: (anEnteroMultiplier integerValue * self integerValue)! !
+
+!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:42:46'!
+multiplyFraccion: aFraccionMultiplier
+
+	^(self * aFraccionMultiplier numerator) / aFraccionMultiplier denominator ! !
 
 !Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:16:09'!
 substractFromEntero: anEnteroMinuend
@@ -517,26 +537,6 @@ substractFromEntero: anEnteroMinuend
 substractFromFraccion: aFraccionMinuend
 
 	^((aFraccionMinuend numerator - (self * aFraccionMinuend denominator)) / aFraccionMinuend denominator) ! !
-
-!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:17:22'!
-useAsDivisorToDivideEntero: anEnteroDividend
-
-	^Fraccion with: anEnteroDividend over: self ! !
-
-!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:17:12'!
-useAsDivisorToDivideFraccion: aFraccionDividend
-
-	^(aFraccionDividend numerator / (aFraccionDividend denominator * self))! !
-
-!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:17:03'!
-useAsMultiplicandToMultiplyEntero: anEnteroMultiplier
-
-	^self class with: (anEnteroMultiplier integerValue * self integerValue)! !
-
-!Entero methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:16:50'!
-useAsMultiplicandToMultiplyFraccion: aFraccionMultiplier
-
-	^(self * aFraccionMultiplier numerator) / aFraccionMultiplier denominator ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -564,10 +564,10 @@ Numero subclass: #Fraccion
 	poolDictionaries: ''
 	category: 'Numeros-Parte2-Ejercicio'!
 
-!Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/28/2021 19:02:29'!
+!Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/30/2021 19:44:10'!
 * aMultiplier 
 
-	^aMultiplier useAsMultiplicandToMultiplyFraccion: self! !
+	^aMultiplier multiplyFraccion: self! !
 
 !Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/28/2021 00:06:55'!
 + anAdder 
@@ -580,10 +580,10 @@ Numero subclass: #Fraccion
 	^aSubtrahend substractFromFraccion: self
 ! !
 
-!Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/28/2021 00:10:30'!
+!Fraccion methodsFor: 'arithmetic operations' stamp: 'ML 5/30/2021 19:43:29'!
 / aDivisor 
 	
-	^ aDivisor useAsDivisorToDivideFraccion: self! !
+	^ aDivisor divideFraccion: self! !
 
 
 !Fraccion methodsFor: 'comparing' stamp: 'HernanWilkinson 5/7/2016 20:42'!
@@ -659,6 +659,26 @@ beAddedToFraccion: aFraccionAugend
 	
 	^newNumerator / newDenominator! !
 
+!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:43:17'!
+divideEntero: anEnteroDividend
+
+	^(anEnteroDividend * denominator ) / numerator ! !
+
+!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:43:29'!
+divideFraccion: aFraccionDividend
+
+	^((aFraccionDividend numerator * denominator) / (aFraccionDividend denominator * numerator))! !
+
+!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:43:43'!
+multiplyEntero: anEnteroMultiplier
+
+	^(anEnteroMultiplier * numerator) / denominator ! !
+
+!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/30/2021 19:44:09'!
+multiplyFraccion: aFraccionMultiplier
+
+	^(aFraccionMultiplier numerator * numerator) / (aFraccionMultiplier denominator * denominator)! !
+
 !Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:25:01'!
 substractFromEntero: anEnteroMinuend
 
@@ -673,26 +693,6 @@ substractFromFraccion: aFraccionMinuend
 	newDenominator := aFraccionMinuend denominator * denominator.
 	
 	^newNumerator / newDenominator! !
-
-!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:24:50'!
-useAsDivisorToDivideEntero: anEnteroDividend
-
-	^(anEnteroDividend * denominator ) / numerator ! !
-
-!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:24:38'!
-useAsDivisorToDivideFraccion: aFraccionDividend
-
-	^((aFraccionDividend numerator * denominator) / (aFraccionDividend denominator * numerator))! !
-
-!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:24:29'!
-useAsMultiplicandToMultiplyEntero: anEnteroMultiplier
-
-	^(anEnteroMultiplier * numerator) / denominator ! !
-
-!Fraccion methodsFor: 'arithmetic operations - private' stamp: 'ML 5/28/2021 19:24:21'!
-useAsMultiplicandToMultiplyFraccion: aFraccionMultiplier
-
-	^(aFraccionMultiplier numerator * numerator) / (aFraccionMultiplier denominator * denominator)! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
