@@ -152,64 +152,45 @@ Object subclass: #OOStack
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:52:02'!
+!OOStack methodsFor: 'initialization' stamp: 'MC 6/7/2021 23:22:10'!
+initialize
+
+	size := 0.
+	topItem := EndOfStack new.! !
+
+
+!OOStack methodsFor: 'testing' stamp: 'MC 6/7/2021 23:17:14'!
 isEmpty
 	
-	^ topItem = nil.! !
+	^ size = 0.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:26:04'!
+
+!OOStack methodsFor: 'stack operations' stamp: 'MC 6/8/2021 00:02:21'!
 pop
 	| poppedItem |
 	
-	(topItem = nil) ifTrue: [ self signalEmptyStack].	
-	
-	poppedItem := topItem.
-	topItem := poppedItem nextItem.
+	poppedItem := topItem content.
+	topItem := topItem nextItem.
 	size := (size - 1).
 	
-	^ poppedItem content.! !
+	^ poppedItem.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:06:11'!
-push: anItem
+!OOStack methodsFor: 'stack operations' stamp: 'MC 6/8/2021 00:00:02'!
+push: aContent
 
-	| item |
-	
-	item := StackItem new.
-	item content: anItem.
-	item nextItem: topItem.
-	topItem := item.
+	topItem := StackItem with: aContent nextItem: topItem.
 	size := (size + 1).
-	! !
+! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:25:15'!
-signalEmptyStack
-
-	self error: self class stackEmptyErrorDescription.! !
-
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:37:06'!
+!OOStack methodsFor: 'stack operations' stamp: 'MC 6/6/2021 23:37:06'!
 size
 
 	^ size.! !
 
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:51:12'!
-size: newSize
-	
-	size := newSize.! !
-
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:27:44'!
+!OOStack methodsFor: 'stack operations' stamp: 'MC 6/8/2021 00:03:47'!
 top
-	self isEmpty ifTrue: [ self signalEmptyStack ].
+
 	^ topItem content.! !
-
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:36:58'!
-topItem
-
-	^ topItem.! !
-
-!OOStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:07:07'!
-topItem: anItem
-
-	topItem := anItem.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -223,16 +204,6 @@ stackEmptyErrorDescription
 	^ 'Stack is empty'! !
 
 
-!OOStack class methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:52:23'!
-new
-	| newStack |
-	
-	newStack := super new.
-	newStack size: 0.
-	newStack topItem: nil.
-	
-	^ newStack.! !
-
 
 !classDefinition: #SentenceFinderByPrefix category: 'Stack-Exercise'!
 Object subclass: #SentenceFinderByPrefix
@@ -241,36 +212,110 @@ Object subclass: #SentenceFinderByPrefix
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
+!SentenceFinderByPrefix methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 01:01:48'!
+findStringsThatStartWith: aPrefix in: aStack
+
+	| auxStack coincidences |
+	
+	aStack isEmpty ifTrue: [ self error: OOStack stackEmptyErrorDescription ].
+	(aPrefix = ''	) ifTrue: [ self error: SentenceFinderByPrefix prefixIsEmptyErrorDescription ].
+	(aPrefix findString: ' ') > 0 ifTrue: [ self error: SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription ].
+	
+	auxStack := aStack.
+	coincidences := OrderedCollection new.
+	
+	aStack size timesRepeat: [ 
+		| currentString |
+		currentString := auxStack pop.
+		(currentString beginsWith: aPrefix) ifTrue: [ coincidences add: currentString ].
+				 ].
+	
+	^ coincidences.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'SentenceFinderByPrefix class' category: 'Stack-Exercise'!
+SentenceFinderByPrefix class
+	instanceVariableNames: ''!
+
+!SentenceFinderByPrefix class methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 01:00:34'!
+prefixCannotContainMoreThanOneWordErrorDescription
+
+	^ 'Prefix should only be a word!!'.! !
+
+!SentenceFinderByPrefix class methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 00:50:20'!
+prefixIsEmptyErrorDescription
+
+	^ 'Prefix cannot be empty!!'! !
+
 
-!classDefinition: #StackItem category: 'Stack-Exercise'!
-Object subclass: #StackItem
+!classDefinition: #StackComponent category: 'Stack-Exercise'!
+Object subclass: #StackComponent
 	instanceVariableNames: 'nextItem content'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:05:18'!
+!StackComponent methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 19:46:00'!
 content 
 
+	self subclassResponsibility.! !
+
+
+!classDefinition: #EndOfStack category: 'Stack-Exercise'!
+StackComponent subclass: #EndOfStack
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Stack-Exercise'!
+
+!EndOfStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 23:35:33'!
+content 
+
+	self signalEmptyStack.! !
+
+!EndOfStack methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 23:29:32'!
+signalEmptyStack
+
+	self error: OOStack stackEmptyErrorDescription.! !
+
+
+!classDefinition: #StackItem category: 'Stack-Exercise'!
+StackComponent subclass: #StackItem
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Stack-Exercise'!
+
+!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 19:53:31'!
+content
+	
 	^ content.! !
 
-!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:28:33'!
-content: newContent
+!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 00:12:55'!
+initializeWith: newContent nextItem: anItem
 
-	content := newContent.! !
+	content := newContent.
+	nextItem := anItem.! !
 
-!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:31:42'!
-initializeWith: newContent
-
-	self content: newContent.
-	self nextItem: nil.! !
-
-!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 00:03:51'!
+!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/7/2021 19:53:42'!
 nextItem
 
 	^ nextItem.! !
 
-!StackItem methodsFor: 'as yet unclassified' stamp: 'MC 6/6/2021 23:29:16'!
-nextItem: anItem
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-	nextItem := anItem.! !
+!classDefinition: 'StackItem class' category: 'Stack-Exercise'!
+StackItem class
+	instanceVariableNames: ''!
+
+!StackItem class methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 00:00:23'!
+with: newContent nextItem: anItem
+
+	| stackItem |
+	
+	stackItem := self new.
+	
+	stackItem initializeWith: newContent nextItem: anItem.
+	
+	^ stackItem.! !
