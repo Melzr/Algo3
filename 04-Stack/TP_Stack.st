@@ -144,6 +144,13 @@ TestCase subclass: #SentenceFinderByPrefixTest
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'ML 6/8/2021 20:54:51'!
+test01CantFindStringByEmptyPrefix
+	
+	|aStack|
+
+	self find: '' in: aStack! !
+
 
 !classDefinition: #OOStack category: 'Stack-Exercise'!
 Object subclass: #OOStack
@@ -203,7 +210,6 @@ stackEmptyErrorDescription
 
 	^ 'Stack is empty'! !
 
-
 
 !classDefinition: #SentenceFinderByPrefix category: 'Stack-Exercise'!
 Object subclass: #SentenceFinderByPrefix
@@ -212,14 +218,20 @@ Object subclass: #SentenceFinderByPrefix
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!SentenceFinderByPrefix methodsFor: 'as yet unclassified' stamp: 'MC 6/8/2021 01:01:48'!
-findStringsThatStartWith: aPrefix in: aStack
-
-	| auxStack coincidences |
+!SentenceFinderByPrefix methodsFor: 'testing' stamp: 'ML 6/8/2021 20:38:05'!
+verifyPrefix: aPrefix andStack: aStack
 	
 	aStack isEmpty ifTrue: [ self error: OOStack stackEmptyErrorDescription ].
 	(aPrefix = ''	) ifTrue: [ self error: SentenceFinderByPrefix prefixIsEmptyErrorDescription ].
-	(aPrefix findString: ' ') > 0 ifTrue: [ self error: SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription ].
+	(aPrefix findString: ' ') > 0 ifTrue: [ self error: SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription ].! !
+
+
+!SentenceFinderByPrefix methodsFor: 'sentence finder' stamp: 'ML 6/8/2021 20:40:28'!
+find: aPrefix in: aStack
+
+	| auxStack coincidences |
+	
+	self verifyPrefix: aPrefix andStack: aStack.
 	
 	auxStack := aStack.
 	coincidences := OrderedCollection new.
