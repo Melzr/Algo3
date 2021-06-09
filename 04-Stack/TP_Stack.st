@@ -139,17 +139,173 @@ test10CanNotTopWhenThereAreNoObjectsInTheStack
 
 !classDefinition: #SentenceFinderByPrefixTest category: 'Stack-Exercise'!
 TestCase subclass: #SentenceFinderByPrefixTest
-	instanceVariableNames: ''
+	instanceVariableNames: 'stack finder'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'ML 6/8/2021 20:54:51'!
-test01CantFindStringByEmptyPrefix
-	
-	|aStack|
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:16:18'!
+test01CannotFindStringByEmptyPrefix
 
-	self find: '' in: aStack! !
+	| findingStringByEmptyPrefix errorIsThatPrefixCannotBeEmpty|
+	
+	findingStringByEmptyPrefix := [ finder find: '' in: stack. ].	
+
+	errorIsThatPrefixCannotBeEmpty := [ :anError | 
+		self assert: anError messageText = SentenceFinderByPrefix prefixIsEmptyErrorDescription. ].
+	
+	self testThat: findingStringByEmptyPrefix throwsSignal: Error andInThatCaseTestThat: errorIsThatPrefixCannotBeEmpty.! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:18:53'!
+test02PrefixCannotContainMoreThanOneWord
+
+	| findingStringByMultiwordPrefix errorIsThatPrefixExceedesOneWord |
+	
+	findingStringByMultiwordPrefix := [ finder find: 'la filita' in: stack. ].	
+
+	errorIsThatPrefixExceedesOneWord := [ :anError | 
+		self assert: anError messageText = SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription. ].
+	
+	self testThat: findingStringByMultiwordPrefix throwsSignal: Error andInThatCaseTestThat: errorIsThatPrefixExceedesOneWord.! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:23:14'!
+test03StackCannotBeEmpty
+
+	| findingStringInEmptyStack errorIsThatStackIsEmpty |
+	
+	findingStringInEmptyStack := [ finder find: 'A' in: stack. ].	
+
+	errorIsThatStackIsEmpty := [ :anError | 
+		self assert: anError messageText = OOStack stackEmptyErrorDescription. ].
+	
+	self testThat: findingStringInEmptyStack throwsSignal: Error andInThatCaseTestThat: errorIsThatStackIsEmpty.! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:52:07'!
+test04CanFindOneMatch
+	
+	| matches elements |
+	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'the' in: stack.
+	
+	self assert: (matches size = 1).
+	self assert: ((matches count: [ :aMatch | aMatch = 'the winds of winter' ]) = 1).
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:55:48'!
+test05CanFindMultipleMatches
+	
+	| matches elements |
+	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'wint' in: stack.
+	
+	self assert: (matches size = 2).
+	self assert: ((matches count: [ :aMatch | aMatch beginsWith: 'wint' ]) = 2).
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:53:59'!
+test06MatchIsCaseSensitive
+	
+	| matches elements |
+	elements := #('winter is coming' 'winning is everything' 'The winds of Winter' 'Winter is here').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'Wint' in: stack.
+	
+	self assert: (matches size = 1).
+	self assert: ((matches count: [ :aMatch | aMatch = 'Winter is here' ]) = 1).
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:58:04'!
+test07CannotFindMatches
+	
+	| matches elements |
+	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'a' in: stack.
+	
+	self assert: (matches isEmpty).
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/9/2021 00:21:03'!
+test08StackRemainsUntouched
+	
+	| elements auxStack |
+	
+	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
+	self pushElementsFrom: elements to: stack.
+	
+	auxStack := stack copy.
+	finder find: 'wint' in: stack.
+	
+	self verifyThat: stack hasTheSameElementsAs: auxStack.
+	
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/9/2021 00:22:17'!
+test09AllElementsInStackMatch
+	
+	| matches elements |
+	elements := #('winter is coming' 'winter is everything' 'winter is not here' 'winter is here' 'winter, i love it' 'winter.').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'winter' in: stack.
+	
+	self assert: (matches size = stack size).
+	self assert: ((matches count: [ :aMatch | aMatch beginsWith: 'winter' ]) = stack size).
+
+	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/9/2021 00:26:17'!
+test10CanFindElementThatOnlyContainsPrefix
+	
+	| matches elements |
+	elements := #('asasdas' 'sadads' 'A' 'winter').
+	self pushElementsFrom: elements to: stack.
+	
+	matches := finder find: 'winter' in: stack.
+	
+	self assert: (matches size = 1).
+	self assert: ((matches count: [ :aMatch | aMatch = 'winter']) = 1).
+
+	! !
+
+
+!SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/8/2021 23:49:46'!
+pushElementsFrom: anArray to: aStack
+
+	anArray do: [ :anElement | aStack push: anElement ].! !
+
+!SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/8/2021 22:53:15'!
+testThat: aClosure throwsSignal: anException andInThatCaseTestThat: anotherClosure  
+
+	[aClosure value. self fail.]
+		on: anException
+		do: anotherClosure.! !
+
+!SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/9/2021 00:20:31'!
+verifyThat: aStack hasTheSameElementsAs: anotherStack
+
+	self assert: (aStack size = anotherStack size).
+	aStack size timesRepeat: [ self assert: (aStack pop = anotherStack pop) ].
+
+	! !
+
+
+!SentenceFinderByPrefixTest methodsFor: 'setup' stamp: 'MC 6/8/2021 23:09:05'!
+setUp
+	
+	stack := OOStack new.
+	finder := SentenceFinderByPrefix new.! !
 
 
 !classDefinition: #OOStack category: 'Stack-Exercise'!
@@ -189,7 +345,7 @@ push: aContent
 	size := (size + 1).
 ! !
 
-!OOStack methodsFor: 'stack operations' stamp: 'MC 6/6/2021 23:37:06'!
+!OOStack methodsFor: 'stack operations' stamp: 'MC 6/9/2021 00:11:11'!
 size
 
 	^ size.! !
@@ -218,22 +374,24 @@ Object subclass: #SentenceFinderByPrefix
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!SentenceFinderByPrefix methodsFor: 'testing' stamp: 'ML 6/8/2021 20:38:05'!
+!SentenceFinderByPrefix methodsFor: 'testing' stamp: 'MC 6/8/2021 23:06:17'!
 verifyPrefix: aPrefix andStack: aStack
+
+	(aPrefix = ''	) ifTrue: [ self error: SentenceFinderByPrefix prefixIsEmptyErrorDescription ].	
 	
-	aStack isEmpty ifTrue: [ self error: OOStack stackEmptyErrorDescription ].
-	(aPrefix = ''	) ifTrue: [ self error: SentenceFinderByPrefix prefixIsEmptyErrorDescription ].
-	(aPrefix findString: ' ') > 0 ifTrue: [ self error: SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription ].! !
+	(aPrefix findString: ' ') > 0 ifTrue: [ self error: SentenceFinderByPrefix prefixCannotContainMoreThanOneWordErrorDescription ].
+	
+	aStack isEmpty ifTrue: [ self error: OOStack stackEmptyErrorDescription ].! !
 
 
-!SentenceFinderByPrefix methodsFor: 'sentence finder' stamp: 'ML 6/8/2021 20:40:28'!
+!SentenceFinderByPrefix methodsFor: 'sentence finder' stamp: 'MC 6/9/2021 00:15:40'!
 find: aPrefix in: aStack
 
 	| auxStack coincidences |
 	
 	self verifyPrefix: aPrefix andStack: aStack.
 	
-	auxStack := aStack.
+	auxStack := aStack copy.
 	coincidences := OrderedCollection new.
 	
 	aStack size timesRepeat: [ 
