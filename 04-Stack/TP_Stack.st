@@ -180,45 +180,47 @@ test03StackCannotBeEmpty
 	
 	self testThat: findingStringInEmptyStack throwsSignal: Error andInThatCaseTestThat: errorIsThatStackIsEmpty.! !
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:52:07'!
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 16:20:15'!
 test04CanFindOneMatch
 	
-	| matches elements |
+	| matches elements prefix |
+	
+	prefix := 'the'.
 	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
 	self pushElementsFrom: elements to: stack.
 	
-	matches := finder find: 'the' in: stack.
+	matches := finder find: prefix in: stack.
 	
-	self assert: (matches size = 1).
-	self assert: ((matches count: [ :aMatch | aMatch = 'the winds of winter' ]) = 1).
-
+	self testThatThereAre: 1 elementsIn: matches andAllStartWith: prefix.
 	! !
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:55:48'!
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 15:45:00'!
 test05CanFindMultipleMatches
 	
-	| matches elements |
+	| matches elements prefix |
+	
+	prefix := 'wint'.
 	elements := #('winter is coming' 'winning is everything' 'the winds of winter' 'winter is here').
 	self pushElementsFrom: elements to: stack.
 	
-	matches := finder find: 'wint' in: stack.
+	matches := finder find: prefix in: stack.
 	
-	self assert: (matches size = 2).
-	self assert: ((matches count: [ :aMatch | aMatch beginsWith: 'wint' ]) = 2).
+	self testThatThereAre: 2 elementsIn: matches andAllStartWith: prefix.
 
 	! !
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/8/2021 23:53:59'!
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 15:44:18'!
 test06MatchIsCaseSensitive
 	
-	| matches elements |
+	| matches elements prefix |
+	
+	prefix := 'Wint'.
 	elements := #('winter is coming' 'winning is everything' 'The winds of Winter' 'Winter is here').
 	self pushElementsFrom: elements to: stack.
 	
-	matches := finder find: 'Wint' in: stack.
+	matches := finder find: prefix in: stack.
 	
-	self assert: (matches size = 1).
-	self assert: ((matches count: [ :aMatch | aMatch = 'Winter is here' ]) = 1).
+	self testThatThereAre: 1 elementsIn: matches andAllStartWith: prefix.
 
 	! !
 
@@ -251,33 +253,48 @@ test08StackRemainsUntouched
 
 	! !
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/9/2021 00:22:17'!
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 15:42:22'!
 test09AllElementsInStackMatch
 	
-	| matches elements |
+	| matches elements prefix |
+	
+	prefix := 'winter'.
 	elements := #('winter is coming' 'winter is everything' 'winter is not here' 'winter is here' 'winter, i love it' 'winter.').
 	self pushElementsFrom: elements to: stack.
 	
-	matches := finder find: 'winter' in: stack.
+	matches := finder find: prefix in: stack.
 	
-	self assert: (matches size = stack size).
-	self assert: ((matches count: [ :aMatch | aMatch beginsWith: 'winter' ]) = stack size).
+	self testThatThereAre: (stack size) elementsIn: matches andAllStartWith: prefix.
 
 	! !
 
-!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/9/2021 00:26:17'!
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 15:40:57'!
 test10CanFindElementThatOnlyContainsPrefix
 	
-	| matches elements |
+	| matches elements prefix |
+	
+	prefix := 'winter'.
 	elements := #('asasdas' 'sadads' 'A' 'winter').
 	self pushElementsFrom: elements to: stack.
 	
-	matches := finder find: 'winter' in: stack.
+	matches := finder find: prefix in: stack.
 	
-	self assert: (matches size = 1).
-	self assert: ((matches count: [ :aMatch | aMatch = 'winter']) = 1).
+	self testThatThereAre: 1 elementsIn: matches andAllStartWith: prefix.
 
 	! !
+
+!SentenceFinderByPrefixTest methodsFor: 'tests' stamp: 'MC 6/10/2021 16:16:18'!
+test11MatchFoundContainsTheEntireSentenceAndNotJustThePrefix
+	
+	| matches prefix expectedMatch |
+	
+	prefix := 'wint'.
+	expectedMatch := 'winter is coming'.
+	
+	stack push: expectedMatch.
+	matches := finder find: prefix in: stack.
+	
+	self assert: ((matches at: 1) = expectedMatch).! !
 
 
 !SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/8/2021 23:49:46'!
@@ -291,6 +308,12 @@ testThat: aClosure throwsSignal: anException andInThatCaseTestThat: anotherClosu
 	[aClosure value. self fail.]
 		on: anException
 		do: anotherClosure.! !
+
+!SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/10/2021 15:43:36'!
+testThatThereAre: aNumber elementsIn: aCollection andAllStartWith: aPrefix.
+
+	self assert: (aCollection size = aNumber).
+	self assert: ((aCollection count: [ :aMatch | aMatch beginsWith: aPrefix]) = aNumber).! !
 
 !SentenceFinderByPrefixTest methodsFor: 'helpers' stamp: 'MC 6/9/2021 00:20:31'!
 verifyThat: aStack hasTheSameElementsAs: anotherStack
@@ -374,7 +397,7 @@ Object subclass: #SentenceFinderByPrefix
 	poolDictionaries: ''
 	category: 'Stack-Exercise'!
 
-!SentenceFinderByPrefix methodsFor: 'testing' stamp: 'MC 6/8/2021 23:06:17'!
+!SentenceFinderByPrefix methodsFor: 'private' stamp: 'MC 6/8/2021 23:06:17'!
 verifyPrefix: aPrefix andStack: aStack
 
 	(aPrefix = ''	) ifTrue: [ self error: SentenceFinderByPrefix prefixIsEmptyErrorDescription ].	
