@@ -54,15 +54,32 @@ test07CanMoveAndRotateInOneCommandSequence
 
 	self assert: (rover isAt: 1@1 andFaces: #South).! !
 
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:18:48'!
-test08ExecutesSequenceEndingInInitialPosition
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:10:05'!
+test08CanExecuteSeparateCommandSequencesInARow
+ 
+	rover executeCommandSequence: 'bb'.
+	rover executeCommandSequence: 'rr'.
+	
+	self assert: (rover isAt: 0@-2 andFaces: #South).! !
+
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:10:22'!
+test09RoverMovesCorrectlyWhenInitialPositionIsNotOrigin
+ 
+	rover := MarsRover inPosition: -1@-1 facing: #South.
+	
+	rover executeCommandSequence: 'ffrb'.
+	
+	self assert: (rover isAt: 0@-3 andFaces: #West).! !
+
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:10:49'!
+test10ExecutesSequenceEndingInInitialPosition
 
 	rover executeCommandSequence: 'ffbbrrrr'.
 
 	self assert: (rover isAt: 0@0 andFaces: #North).! !
 
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:41:36'!
-test09CannotExecuteInvalidCommand
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:11:57'!
+test11CannotExecuteInvalidCommand
 
 	| executingInvalidCommand |
 	
@@ -70,8 +87,8 @@ test09CannotExecuteInvalidCommand
 
 	self testThat: executingInvalidCommand throwsErrorWithMessage: MarsRover invalidCommandErrorMessage.! !
 
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:39:03'!
-test10CommandSequenceStopsExecutingAfterInvalidCommand
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:13:25'!
+test12CommandSequenceStopsExecutingAfterInvalidCommand
 
 	| executingInvalidCommandSequence assertRoverPositionAndDirection |
 	
@@ -80,8 +97,18 @@ test10CommandSequenceStopsExecutingAfterInvalidCommand
 
 	self testThat: executingInvalidCommandSequence throwsErrorSignalAndInThatCaseDo: assertRoverPositionAndDirection.! !
 
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:40:50'!
-test11CannotExecuteANonStringCommand
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 15:54:59'!
+test13RoverCannotBeInInvalidPosition
+	
+	self testThat: [MarsRover inPosition: 0 facing: CompassPointingNorth new] throwsErrorWithMessage: MarsRover invalidPositionErrorMessage.! !
+
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:13:47'!
+test14RoverFaceInvalidCardinalPoint
+
+	self testThat: [MarsRover inPosition: 0@0 facing: #A] throwsErrorWithMessage: MarsRover invalidCardinalPointErrorMessage.! !
+
+!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 16:13:54'!
+test15CannotExecuteANonStringCommand
 
 	| commandCollection executingANonStringCommand |
 
@@ -90,29 +117,11 @@ test11CannotExecuteANonStringCommand
 	
 	self testThat: executingANonStringCommand throwsErrorWithMessage: MarsRover commandSequenceIsNotAStringErrorMessage.! !
 
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:28:38'!
-test12RoverCannotHaveInvalidCompass
 
-	self testThat: [MarsRover inPosition: 0@0 withCompass: #A] throwsErrorWithMessage: MarsRover invalidCompassErrorMessage.! !
-
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:29:20'!
-test13RoverCannotBeInInvalidPosition
-	
-	self testThat: [MarsRover inPosition: 0 withCompass: CompassPointingNorth new] throwsErrorWithMessage: MarsRover invalidPositionErrorMessage.! !
-
-!MarsRoverTest methodsFor: 'test' stamp: 'ML 7/1/2021 12:18:48'!
-test14CanExecuteSeparateCommandSequencesInARow
- 
-	rover executeCommandSequence: 'bb'.
-	rover executeCommandSequence: 'rr'.
-	
-	self assert: (rover isAt: 0@-2 andFaces: #South).! !
-
-
-!MarsRoverTest methodsFor: 'setup' stamp: 'ML 7/1/2021 12:18:48'!
+!MarsRoverTest methodsFor: 'setup' stamp: 'ML 7/1/2021 15:55:12'!
 setUp
 	
-	rover := MarsRover inPosition: 0@0 withCompass: CompassPointingNorth new.! !
+	rover := MarsRover inPosition: 0@0 facing: #North.! !
 
 
 !MarsRoverTest methodsFor: 'helpers' stamp: 'ML 7/1/2021 12:36:11'!
@@ -142,14 +151,13 @@ initializeInPosition: aPosition withCompass: aCompass
 	compass := aCompass.! !
 
 
-!MarsRover methodsFor: 'commands' stamp: 'ML 7/1/2021 12:44:26'!
+!MarsRover methodsFor: 'commands' stamp: 'ML 7/1/2021 15:59:36'!
 executeCommandSequence: aCommandSequence 
 
 	aCommandSequence class = String 
 		ifFalse: [self error: self class commandSequenceIsNotAStringErrorMessage ]. 
-	
-	aCommandSequence do: [ :command | self executeCommand: command. ].
-		! !
+		
+	aCommandSequence do: [ :aCommandIdentifier | self executeCommand: aCommandIdentifier ].! !
 
 
 !MarsRover methodsFor: 'movement - private' stamp: 'ML 7/1/2021 11:45:31'!
@@ -209,17 +217,10 @@ isFacing: aCardinalPoint
 	^ [aCardinalPoint = compass direction]! !
 
 
-!MarsRover methodsFor: 'commands - private' stamp: 'ML 7/1/2021 12:43:47'!
-executeCommand: aCommand
-
-	(aCommand = $f or: aCommand = $b or: aCommand = $r or: aCommand = $l) 
-		ifFalse: [self error: self class invalidCommandErrorMessage].
+!MarsRover methodsFor: 'commands - private' stamp: 'ML 7/1/2021 15:59:04'!
+executeCommand: aCommandIdentifier
 					
-	(aCommand = $f) ifTrue: [ self moveForward ].
-	(aCommand = $b) ifTrue: [ self moveBackwards ].
-	(aCommand = $r) ifTrue: [ self rotateRight ].
-	(aCommand = $l) ifTrue: [ self rotateLeft ].
-		! !
+	(RoverCommand for: aCommandIdentifier) beExecutedBy: self.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -227,14 +228,15 @@ executeCommand: aCommand
 MarsRover class
 	instanceVariableNames: ''!
 
-!MarsRover class methodsFor: 'instance creation' stamp: 'ML 7/1/2021 12:13:47'!
-inPosition: aPosition withCompass: aCompass
-
-	(aCompass isKindOf: RoverCompass)
-		ifFalse: [self error: self invalidCompassErrorMessage ].
-		
+!MarsRover class methodsFor: 'instance creation' stamp: 'ML 7/1/2021 15:54:59'!
+inPosition: aPosition facing: aCardinalPoint
+	
+	| aCompass |
+			
 	(aPosition isKindOf: Point)
-		ifFalse: [self error: self invalidPositionErrorMessage ].	
+		ifFalse: [self error: self invalidPositionErrorMessage ].
+			
+ 	aCompass := RoverCompass pointing: aCardinalPoint.
 
 	^ self new initializeInPosition: aPosition withCompass: aCompass.! !
 
@@ -244,20 +246,150 @@ commandSequenceIsNotAStringErrorMessage
 
 	^'Command sequence should be a string'.! !
 
+!MarsRover class methodsFor: 'error descriptions' stamp: 'ML 7/1/2021 15:48:39'!
+invalidCardinalPointErrorMessage
+
+	^'Rover must face a valid cardinal point'! !
+
 !MarsRover class methodsFor: 'error descriptions' stamp: 'ML 6/30/2021 11:13:43'!
 invalidCommandErrorMessage
 
 	^'Unkown command'.! !
 
-!MarsRover class methodsFor: 'error descriptions' stamp: 'ML 7/1/2021 11:27:52'!
-invalidCompassErrorMessage
-
-	^'Rover must have a valid compass'! !
-
 !MarsRover class methodsFor: 'error descriptions' stamp: 'ML 7/1/2021 12:12:36'!
 invalidPositionErrorMessage
 
 	^'Position must be a valid Point'! !
+
+
+!classDefinition: #RoverCommand category: 'MarsRover'!
+Object subclass: #RoverCommand
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover'!
+
+!RoverCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:10:49'!
+beExecutedBy: aRover
+
+	self subclassResponsibility! !
+
+!RoverCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:02:07'!
+commandIdentifier
+
+	self subclassResponsibility! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'RoverCommand class' category: 'MarsRover'!
+RoverCommand class
+	instanceVariableNames: ''!
+
+!RoverCommand class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:43:04'!
+for: aCommandIdentifier
+	
+	| command |
+
+	command := (self subclasses detect: [ :subclass | subclass isActivatedBy: aCommandIdentifier ] 
+				   ifNone: [ self error: MarsRover invalidCommandErrorMessage ]). 
+				
+	^command new.! !
+
+
+!classDefinition: #MoveBackwardsCommand category: 'MarsRover'!
+RoverCommand subclass: #MoveBackwardsCommand
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover'!
+
+!MoveBackwardsCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:10:49'!
+beExecutedBy: aRover
+
+	aRover moveBackwards.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'MoveBackwardsCommand class' category: 'MarsRover'!
+MoveBackwardsCommand class
+	instanceVariableNames: ''!
+
+!MoveBackwardsCommand class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:43:43'!
+isActivatedBy: aCommandIdentifier
+
+	^$b = aCommandIdentifier! !
+
+
+!classDefinition: #MoveForwardCommand category: 'MarsRover'!
+RoverCommand subclass: #MoveForwardCommand
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover'!
+
+!MoveForwardCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:10:49'!
+beExecutedBy: aRover
+
+	aRover moveForward.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'MoveForwardCommand class' category: 'MarsRover'!
+MoveForwardCommand class
+	instanceVariableNames: ''!
+
+!MoveForwardCommand class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:44:04'!
+isActivatedBy: aCommandIdentifier
+
+	^$f = aCommandIdentifier! !
+
+
+!classDefinition: #RotateLeftCommand category: 'MarsRover'!
+RoverCommand subclass: #RotateLeftCommand
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover'!
+
+!RotateLeftCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:10:49'!
+beExecutedBy: aRover
+
+	aRover rotateLeft.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'RotateLeftCommand class' category: 'MarsRover'!
+RotateLeftCommand class
+	instanceVariableNames: ''!
+
+!RotateLeftCommand class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:44:17'!
+isActivatedBy: aCommandIdentifier
+
+	^$l = aCommandIdentifier! !
+
+
+!classDefinition: #RotateRightCommand category: 'MarsRover'!
+RoverCommand subclass: #RotateRightCommand
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover'!
+
+!RotateRightCommand methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:10:49'!
+beExecutedBy: aRover
+
+	aRover rotateRight.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'RotateRightCommand class' category: 'MarsRover'!
+RotateRightCommand class
+	instanceVariableNames: ''!
+
+!RotateRightCommand class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:44:36'!
+isActivatedBy: aCommandIdentifier
+
+	^$r = aCommandIdentifier! !
 
 
 !classDefinition: #RoverCompass category: 'MarsRover'!
@@ -292,6 +424,22 @@ forwardDirectionOf: aRover
 
 	self subclassResponsibility ! !
 
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'RoverCompass class' category: 'MarsRover'!
+RoverCompass class
+	instanceVariableNames: ''!
+
+!RoverCompass class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:56:33'!
+pointing: aCardinalPoint
+
+	| aCompass |
+	
+	aCompass := self subclasses detect: [ :subclass |  subclass isPointing: aCardinalPoint ] 
+				ifNone: [ self error: MarsRover invalidCardinalPointErrorMessage ].
+				
+	^aCompass new! !
+
 
 !classDefinition: #CompassPointingEast category: 'MarsRover'!
 RoverCompass subclass: #CompassPointingEast
@@ -320,6 +468,17 @@ forwardDirectionOf: aRover
 
 	^aRover forwardPositionWhenPointingEast! !
 
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'CompassPointingEast class' category: 'MarsRover'!
+CompassPointingEast class
+	instanceVariableNames: ''!
+
+!CompassPointingEast class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:45:54'!
+isPointing: aCardinalPoint
+
+	^#East = aCardinalPoint ! !
+
 
 !classDefinition: #CompassPointingNorth category: 'MarsRover'!
 RoverCompass subclass: #CompassPointingNorth
@@ -347,6 +506,17 @@ direction
 forwardDirectionOf: aRover
 
 	^aRover forwardMovementWhenPointingNorth! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'CompassPointingNorth class' category: 'MarsRover'!
+CompassPointingNorth class
+	instanceVariableNames: ''!
+
+!CompassPointingNorth class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:46:08'!
+isPointing: aCardinalPoint
+
+	^#North = aCardinalPoint ! !
 
 
 !classDefinition: #CompassPointingSouth category: 'MarsRover'!
@@ -378,6 +548,17 @@ forwardDirectionOf: aRover
 
 	^aRover forwardPositionWhenPointingSouth! !
 
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'CompassPointingSouth class' category: 'MarsRover'!
+CompassPointingSouth class
+	instanceVariableNames: ''!
+
+!CompassPointingSouth class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:46:15'!
+isPointing: aCardinalPoint
+
+	^#South = aCardinalPoint ! !
+
 
 !classDefinition: #CompassPointingWest category: 'MarsRover'!
 RoverCompass subclass: #CompassPointingWest
@@ -405,3 +586,14 @@ direction
 forwardDirectionOf: aRover
 
 	^aRover forwardPositionWhenPointingWest! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'CompassPointingWest class' category: 'MarsRover'!
+CompassPointingWest class
+	instanceVariableNames: ''!
+
+!CompassPointingWest class methodsFor: 'as yet unclassified' stamp: 'ML 7/1/2021 15:46:24'!
+isPointing: aCardinalPoint
+
+	^#West = aCardinalPoint ! !
