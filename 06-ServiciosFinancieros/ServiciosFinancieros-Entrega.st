@@ -1,182 +1,164 @@
 !classDefinition: #PortfolioTest category: 'ServiciosFinancieros-Ejercicio'!
 TestCase subclass: #PortfolioTest
-	instanceVariableNames: ''
+	instanceVariableNames: 'portfolio'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 22:55:59'!
-test01BalanceOfAnEmptyPortfolioIs0
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:18:03'!
+test01BalanceOfAnEmptyPortfolioIsZero
 	
-	self assert: 0 equals: Portfolio new balance	.! !
+	self assert: 0 equals: portfolio balance	.! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:07:32'!
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:26:59'!
 test02BalanceOfPortfolioWithOneAccountEqualsAccountBalance
 
-	| portfolio anAccount |
-	
-	anAccount := ReceptiveAccount new.
-	portfolio := Portfolio new.
-	
-	portfolio add: anAccount.
-	Deposit register: 50*peso on: anAccount.
+	self addAccountWithDepositOf: 50*peso to: portfolio.
 	
 	self assert: 50*peso equals: portfolio balance.
 	! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:18:54'!
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:29:47'!
 test03BalanceOfPortfolioWithMultipleAccountsIstheSumOfItsAccountsTransactions
 
-	| portfolio anAccount |
-	
-	portfolio := Portfolio new.
-	
-	3 timesRepeat: [
-		anAccount := ReceptiveAccount new.	
-		portfolio add: anAccount.
-		Deposit register: 50*peso on: anAccount.
-				].
+	self add: 3 AccountsWithDepositOf: 50*peso to: portfolio. 
 	
 	self assert: 150*peso equals: portfolio balance.! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:34:26'!
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 13:23:08'!
 test04PortfolioRegistersItsAccountsTransactions
 
-	| portfolio anAccount aTransaction |
-	
-	portfolio := Portfolio new.
-	
-	3 timesRepeat: [
-		anAccount := ReceptiveAccount new.	
-		portfolio add: anAccount.
-		Deposit register: 50*peso on: anAccount.
-				].
-	
-	aTransaction := Withdraw register: 20*peso on: anAccount.
+	| aTransaction |
+
+	aTransaction := self transaction: Withdraw of: 20*peso onAccountAddedTo: portfolio.
 	
 	self assert: (portfolio hasRegistered: aTransaction).! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:38:43'!
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:18:03'!
 test05PortfolioDoesNotRegisterATransactionOnAccountThatIsNotInPortfolio
 
-	| portfolio anAccount aTransaction |
-	
-	portfolio := Portfolio new.
+	| anAccount aTransaction |
 	
 	anAccount := ReceptiveAccount new.	
 	aTransaction := Withdraw register: 20*peso on: anAccount.
 	
 	self deny: (portfolio hasRegistered: aTransaction).! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 00:14:23'!
-test06PortfolioKnowsAllItsAccountsTransactions
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:49:19'!
+test06PortfolioTransactionsIncludesAllOfItsAccountsTransactions
 
-	| portfolio anAccount deposit withdrawal |
+	| deposit withdrawal |
 	
-	portfolio := Portfolio new.
-	
-	anAccount := ReceptiveAccount new.	
-	portfolio add: anAccount.
-	deposit := Deposit register: 50*peso on: anAccount.
-	
-	anAccount := ReceptiveAccount new.
-	portfolio add: anAccount.
-	withdrawal := Withdraw register: 20*peso on: anAccount.	
+	deposit := self transaction: Deposit of: 20*peso onAccountAddedTo: portfolio.
+	withdrawal := self transaction: Withdraw of: 20*peso onAccountAddedTo: portfolio.
 	
 	self assert: 2 equals: portfolio transactions size.
 	self assert: portfolio transactions includes: deposit.
 	self assert: portfolio transactions includes: withdrawal.! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:48:49'!
-test07CannotAddAccountThatIsAlreadyInPortfolio
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 15:35:11'!
+test07PortfolioThatContainsAnotherPortfolioRegistersItsTransactionsAndBalance
 
-	| portfolio anAccount |
+	| subPortfolio aTransaction |
 	
-	portfolio := Portfolio new.
+	subPortfolio := Portfolio new.
+	aTransaction := self transaction: Deposit of: 50*peso onAccountAddedTo: subPortfolio.
+	portfolio add: subPortfolio.
+	
+	self assert: 50*peso equals: portfolio balance.
+	self assert: (portfolio hasRegistered: aTransaction).
+	! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 15:35:19'!
+test08CannotAddAccountThatIsAlreadyInPortfolio
+
+	| anAccount |
 	
 	anAccount := ReceptiveAccount new.	
 	portfolio add: anAccount.
 	
-	[ portfolio add: anAccount. self fail. ] 
-		on: Error 
-		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+	self assertThat: [ portfolio add: anAccount ] throwsErrorSignalWithMessage: Portfolio accountAlreadyInPortfolioErrorMessage.! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:58:44'!
-test08
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 13:29:51'!
+test09CannotAddAnAccountThatIsInInferiorPortfolio
 
-	| portfolioA portfolioB anAccount aTransaction |
+	| subPortfolio anAccount |
 	
-	portfolioA := Portfolio new.
-	portfolioB := Portfolio new.
+	subPortfolio := Portfolio new.
+	anAccount := ReceptiveAccount new.
+	subPortfolio add: anAccount.
+	portfolio add: subPortfolio.
+	
+	self assertThat: [ portfolio add: anAccount ]  throwsErrorSignalWithMessage: Portfolio accountAlreadyInPortfolioErrorMessage.! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 15:33:30'!
+test10PortfolioCannotIncludeItself
+	
+	self assertThat: [ portfolio add: portfolio ] throwsErrorSignalWithMessage: Portfolio accountAlreadyInPortfolioErrorMessage.! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 15:33:40'!
+test11CannotAddAnAccountThatIsAlreadyInSuperiorPortfolio
+
+	| subPortfolioA subPortfolioB |
+	
+	subPortfolioA := Portfolio new.
+	subPortfolioB := Portfolio new.
+	
+	portfolio add: subPortfolioA.
+	portfolio add: subPortfolioB.
+	
+	self assertThat: [ subPortfolioA add: subPortfolioB ] throwsErrorSignalWithMessage: Portfolio accountAlreadyInPortfolioErrorMessage.! !
+
+!PortfolioTest methodsFor: 'tests' stamp: 'ML 7/8/2021 15:41:09'!
+test12CannotAddPortfolioThatCointainsAnAccountThatAlreadyIsInSuperiorPortfolio
+
+	| subPortfolio anAccount |
+	
+	subPortfolio := Portfolio new.
+	anAccount := ReceptiveAccount new.
+	
+	portfolio add: anAccount.
+	subPortfolio add: anAccount.
+		
+	self assertThat: [ portfolio add: subPortfolio ] throwsErrorSignalWithMessage: Portfolio accountAlreadyInPortfolioErrorMessage.! !
+
+
+!PortfolioTest methodsFor: 'setup' stamp: 'ML 7/8/2021 12:18:03'!
+setUp
+
+	portfolio := Portfolio new.! !
+
+
+!PortfolioTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 12:29:13'!
+add: aNumber AccountsWithDepositOf: aValue to: aPortfolio 
+
+	aNumber timesRepeat: [ self addAccountWithDepositOf: aValue to: aPortfolio ].! !
+
+!PortfolioTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 12:26:08'!
+addAccountWithDepositOf: aValue to: aPortfolio 
+
+	| anAccount |
 	
 	anAccount := ReceptiveAccount new.
-	aTransaction := Deposit register: 50*peso on: anAccount.
-	portfolioB add: anAccount.
+	Deposit register: aValue on: anAccount.
 	
-	portfolioA add: portfolioB.
-	
-	self assert: 50*peso equals: portfolioA balance.
-	self assert: (portfolioA hasRegistered: aTransaction).
-	! !
+	aPortfolio add: anAccount.! !
 
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:03:19'!
-test09
+!PortfolioTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 12:52:43'!
+assertThat: aBlock throwsErrorSignalWithMessage: aMessage
 
-	| portfolioA portfolioB anAccount |
-	
-	portfolioA := Portfolio new.
-	portfolioB := Portfolio new.
-	
-	anAccount := ReceptiveAccount new.
-	portfolioB add: anAccount.
-	portfolioA add: portfolioB.
-	
-	[portfolioA add: anAccount. self fail.] 
-		on: Error 
-		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
-
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:21:17'!
-test10
-
-	| portfolioA portfolioB |
-	
-	portfolioA := Portfolio new.
-	portfolioB := Portfolio new.
-	
-	portfolioA add: portfolioB.
-	
-	[portfolioA add: portfolioB. self fail.] 
-		on: Error 
-		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
-
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:33:04'!
-test11
-
-	| portfolioA portfolioB anAccount aTransaction |
-	
-	portfolioA := Portfolio new.
-	portfolioB := Portfolio new.
-	
-	portfolioA add: portfolioB.
-	anAccount := ReceptiveAccount new.
-	aTransaction := Withdraw register: 5*peso on: anAccount.
-	portfolioB add: anAccount.
-	
-	self assert: (portfolioA transactions includes: aTransaction).! !
-
-!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:35:51'!
-test12
-
-	| portfolioA portfolioB |
-	
-	portfolioA := Portfolio new.
-	portfolioB := Portfolio new.
-	
-	portfolioA add: portfolioB.
-	
-	[ portfolioB add: portfolioA. self fail. ]
+	[ aBlock value. self fail ]
 		on: Error
-		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+		do: [ :anError | self assert: aMessage equals: anError messageText ].! !
+
+!PortfolioTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 12:47:12'!
+transaction: aTransactionType of: aValue onAccountAddedTo: aPortfolio
+
+	| anAccount|
+
+	anAccount := ReceptiveAccount new.
+	aPortfolio add: anAccount.
+	^aTransactionType register: aValue on: anAccount.	! !
 
 
 !classDefinition: #ReceptiveAccountTest category: 'ServiciosFinancieros-Ejercicio'!
@@ -186,7 +168,7 @@ TestCase subclass: #ReceptiveAccountTest
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:10:43'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:01:19'!
 test01ReceptiveAccountHaveZeroAsBalanceWhenCreated 
 
 	| account |
@@ -196,7 +178,7 @@ test01ReceptiveAccountHaveZeroAsBalanceWhenCreated
 	self assert: 0 equals: account balance
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:14:20'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:01:52'!
 test02DepositIncreasesBalanceOnTransactionValue 
 
 	| account |
@@ -207,11 +189,11 @@ test02DepositIncreasesBalanceOnTransactionValue
 	self assert: 100 * peso equals: account balance
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:14:24'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:01:48'!
 test03WithdrawDecreasesBalanceOnTransactionValue 
 
 	| account |
-	
+
 	account := ReceptiveAccount new.
 	Deposit register: 100 * peso on: account.
 	Withdraw register: 50 * peso on: account.
@@ -219,7 +201,7 @@ test03WithdrawDecreasesBalanceOnTransactionValue
 	self assert: 50 * peso equals: account balance
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:10:14'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:02:04'!
 test04WithdrawValueMustBePositive 
 
 	| account withdrawValue |
@@ -230,7 +212,7 @@ test04WithdrawValueMustBePositive
 	self assert: withdrawValue equals: (Withdraw register: withdrawValue on: account) value
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:10:22'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:02:15'!
 test05ReceptiveAccountKnowsRegisteredTransactions 
 
 	| account deposit withdraw |
@@ -243,7 +225,7 @@ test05ReceptiveAccountKnowsRegisteredTransactions
 	self assert: (account hasRegistered: withdraw).
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:12:14'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:02:28'!
 test06ReceptiveAccountDoNotKnowNotRegisteredTransactions
 
 	| account deposit withdraw |
@@ -256,7 +238,7 @@ test06ReceptiveAccountDoNotKnowNotRegisteredTransactions
 	self deny: (account hasRegistered: withdraw).
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'LL 7/1/2021 03:12:23'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'ML 7/8/2021 12:02:40'!
 test07AccountKnowsItsTransactions 
 
 	| account deposit |
@@ -277,18 +259,16 @@ TestCase subclass: #TransferenceTest
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:46:34'!
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:51:11'!
 test01TransferDecreasesSenderBalanceAndIncreasesRecipientBalance
 	
-	Deposit register: 50*peso on: sender.
 	Transference register: 50*peso from: sender to: receiver.
 	
-	self assert: 0*peso equals: sender balance.
-	self assert: 50*peso equals: receiver balance.! !
+	self assertThatSenderBalanceIs: -50*peso andReceiverBalanceIs: 50*peso.! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:41'!
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:37:09'!
 test02TransferKnowsItsValue
-
+	
 	| transferValue |
 	
 	transferValue := 50 * peso.
@@ -296,66 +276,286 @@ test02TransferKnowsItsValue
 	self assert: transferValue equals: (Transference register: transferValue from: sender to: receiver) value.
 ! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:41'!
-test03BothAccountsRegisterTransference
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:59:52'!
+test03BothAccountsRegisterTransferenceCorrectly
 
-	| transference senderPart receiverPart |
+	| transference |
 
 	transference := Transference register: 50*peso from: sender to: receiver.
 	
-	senderPart := transference outgoingPart.
-	receiverPart := transference incomingPart.
-	
-	self assert: (sender hasRegistered: senderPart).
-	self assert: (receiver hasRegistered: receiverPart).! !
+	self assertThatSenderAndReceiverAccountsRegisteredCorrectly: transference.! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:40'!
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:51:32'!
 test04EachTransferencePartKnowsItsCounterpart
 
-	| transference senderPart receiverPart |
+	| transference |
 	
 	transference := Transference register: 50*peso from: sender to: receiver.
 	
-	senderPart := transference outgoingPart.
-	receiverPart := transference incomingPart.
-	
-	self assert: receiverPart equals: senderPart counterpart.
-	self assert: senderPart equals: receiverPart counterpart.! !
+	self assertThatBothPartsKnowTheirCounterpartOf: transference.! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:41'!
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:54:55'!
 test05BothPartsKnowTransferenceValue
 
-	| transference senderPart receiverPart transferenceValue |
+	| transference transferenceValue |
 
 	transferenceValue := 50*peso.
 	transference := Transference register: transferenceValue from: sender to: receiver.
 	
-	senderPart := transference outgoingPart.
-	receiverPart := transference incomingPart.
-	
-	self assert: transferenceValue equals: senderPart value.
-	self assert: transferenceValue equals: receiverPart value.! !
+	self assertThatBothPartsOf: transference haveTheSameValue: transferenceValue.! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:40'!
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:58:55'!
 test06CannotTransfer0Pesos
-	
-	[ Transference register: 0*peso from: sender to: receiver. self fail. ] 
-		on: Error 
-		do: [ :anError | self assert: Transference invalidTransferenceValueErrorMessage equals: anError messageText. ].! !
 
-!TransferenceTest methodsFor: 'testing' stamp: 'MC 7/6/2021 17:45:40'!
+	self assertThat: [ Transference register: 0*peso from: sender to: receiver ] 
+		throwsErrorSignalWithMessage: Transference invalidTransferenceValueErrorMessage.! !
+
+!TransferenceTest methodsFor: 'tests' stamp: 'ML 7/8/2021 11:58:23'!
 test07CannotTransferNegativeValue
-	
-	[ Transference register: -50*peso from: sender to: receiver. self fail. ] 
-		on: Error 
-		do: [ :anError | self assert: Transference invalidTransferenceValueErrorMessage equals: anError messageText. ].! !
+
+	self assertThat: [ Transference register: -50*peso from: sender to: receiver ] 
+	 	throwsErrorSignalWithMessage: Transference invalidTransferenceValueErrorMessage.! !
 
 
-!TransferenceTest methodsFor: 'setup' stamp: 'MC 7/6/2021 17:45:41'!
+!TransferenceTest methodsFor: 'setup' stamp: 'ML 7/8/2021 11:41:00'!
 setUp
 
 	receiver := ReceptiveAccount new.
 	sender := ReceptiveAccount new.! !
+
+
+!TransferenceTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 11:56:47'!
+assertThat: aBlock throwsErrorSignalWithMessage: aMessage
+
+	[ aBlock value. self fail ]
+		on: Error
+		do: [ :anError | self assert: aMessage equals: anError messageText ].! !
+
+!TransferenceTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 11:51:01'!
+assertThatBothPartsKnowTheirCounterpartOf: aTransference
+
+	| senderPart receiverPart |
+
+	senderPart := aTransference outgoingPart.
+	receiverPart := aTransference incomingPart.
+	
+	self assert: receiverPart equals: senderPart counterpart.
+	self assert: senderPart equals: receiverPart counterpart.! !
+
+!TransferenceTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 11:53:59'!
+assertThatBothPartsOf: aTransference haveTheSameValue: aValue
+	
+	| senderPart receiverPart |
+
+	senderPart := aTransference outgoingPart.
+	receiverPart := aTransference incomingPart.
+	
+	self assert: aValue equals: senderPart value.
+	self assert: aValue equals: receiverPart value.! !
+
+!TransferenceTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 11:47:29'!
+assertThatSenderAndReceiverAccountsRegisteredCorrectly: aTransference
+
+
+	self assert: (sender hasRegistered: aTransference outgoingPart).
+	self assert: (receiver hasRegistered: aTransference incomingPart).! !
+
+!TransferenceTest methodsFor: 'helpers' stamp: 'ML 7/8/2021 11:51:11'!
+assertThatSenderBalanceIs: senderBalance andReceiverBalanceIs: receiverBalance
+
+	self assert: senderBalance equals: sender balance.
+	self assert: receiverBalance  equals: receiver balance.! !
+
+
+!classDefinition: #AccountComponent category: 'ServiciosFinancieros-Ejercicio'!
+Object subclass: #AccountComponent
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Ejercicio'!
+
+!AccountComponent methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:09:49'!
+balance
+
+	self subclassResponsibility ! !
+
+!AccountComponent methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:10:46'!
+hasRegistered: aTransaction
+
+	self subclassResponsibility ! !
+
+!AccountComponent methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:12:16'!
+transactions
+	
+	self subclassResponsibility ! !
+
+
+!AccountComponent methodsFor: 'testing' stamp: 'ML 7/8/2021 11:10:15'!
+contains: anAccount
+
+	self subclassResponsibility ! !
+
+
+!AccountComponent methodsFor: 'structure' stamp: 'ML 7/8/2021 16:04:50'!
+accounts
+
+	self subclassResponsibility ! !
+
+!AccountComponent methodsFor: 'structure' stamp: 'ML 7/8/2021 11:16:08'!
+setParent: aPortfolio
+
+	self subclassResponsibility ! !
+
+
+!classDefinition: #Portfolio category: 'ServiciosFinancieros-Ejercicio'!
+AccountComponent subclass: #Portfolio
+	instanceVariableNames: 'accounts parent'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Ejercicio'!
+
+!Portfolio methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:18:02'!
+initialize
+
+	accounts := Set new.
+	
+	"Parent comienza en nil y se setea solo en el caso en que el portfolio es agregado a otro portfolio. De esta manera
+	solo usamos isNil una vez en rootParent, lo que no nos parecio justificacion suficiente para modelarlo de una manera mas compleja"! !
+
+
+!Portfolio methodsFor: 'structure - private' stamp: 'ML 7/8/2021 16:03:21'!
+accounts
+
+	| accountsWithSelf |
+
+	accountsWithSelf := accounts copy.
+	accountsWithSelf add: self.
+	
+	^accountsWithSelf ! !
+
+!Portfolio methodsFor: 'structure - private' stamp: 'ML 7/8/2021 14:29:33'!
+rootPortfolio
+
+	parent ifNil: [ ^self ].
+	
+	^parent rootPortfolio.! !
+
+!Portfolio methodsFor: 'structure - private' stamp: 'ML 7/8/2021 11:15:12'!
+setParent: aPortfolio
+
+	parent := aPortfolio.! !
+
+
+!Portfolio methodsFor: 'testing' stamp: 'ML 7/8/2021 10:57:02'!
+contains: anAccount
+
+	^ (self = anAccount) or: [ accounts anySatisfy: [ :account | account contains: anAccount ] ].! !
+
+
+!Portfolio methodsFor: 'main protocol' stamp: 'ML 7/8/2021 13:45:54'!
+add: anAccount
+	
+	(self canAdd: anAccount) ifFalse: [ self error: Portfolio accountAlreadyInPortfolioErrorMessage ].
+	
+	accounts add: anAccount.
+	anAccount setParent: self.! !
+
+!Portfolio methodsFor: 'main protocol' stamp: 'ML 7/8/2021 13:44:35'!
+balance
+
+	^ accounts inject: 0*peso into: [ :currentBalance :anAccount | currentBalance + anAccount balance ].! !
+
+!Portfolio methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:01:21'!
+hasRegistered: aTransaction
+
+    ^ accounts anySatisfy: [ :anAccount | anAccount hasRegistered: aTransaction ].! !
+
+!Portfolio methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:01:46'!
+transactions
+	
+	| transactions |
+	
+	transactions := OrderedCollection new.
+	
+	accounts do: [ :anAccount | transactions addAll: anAccount transactions. ].
+	
+	^ transactions.! !
+
+
+!Portfolio methodsFor: 'testing - private' stamp: 'ML 7/8/2021 16:00:57'!
+canAdd: anAccount
+
+	| initialPortfolio |
+	
+	initialPortfolio := self rootPortfolio.
+
+	anAccount accounts do: [ :account | (initialPortfolio contains: account) ifTrue: [^false] ].
+	
+	^true! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'Portfolio class' category: 'ServiciosFinancieros-Ejercicio'!
+Portfolio class
+	instanceVariableNames: ''!
+
+!Portfolio class methodsFor: 'error messages' stamp: 'ML 7/8/2021 12:54:29'!
+accountAlreadyInPortfolioErrorMessage
+
+	^ 'Account already in portfolio'! !
+
+
+!classDefinition: #ReceptiveAccount category: 'ServiciosFinancieros-Ejercicio'!
+AccountComponent subclass: #ReceptiveAccount
+	instanceVariableNames: 'transactions'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Ejercicio'!
+
+!ReceptiveAccount methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:05:16'!
+initialize
+
+	transactions := OrderedCollection new.! !
+
+
+!ReceptiveAccount methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:13:38'!
+balance
+
+	^ transactions inject: 0*peso into: [ :currentBalance :aTransaction | aTransaction effectOnBalance: currentBalance ].! !
+
+!ReceptiveAccount methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:13:33'!
+hasRegistered: aTransaction
+
+	^ transactions includes: aTransaction ! !
+
+!ReceptiveAccount methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:13:26'!
+register: aTransaction
+
+	transactions add: aTransaction
+! !
+
+!ReceptiveAccount methodsFor: 'main protocol' stamp: 'ML 7/8/2021 11:13:20'!
+transactions 
+
+	^ transactions copy! !
+
+
+!ReceptiveAccount methodsFor: 'testing' stamp: 'ML 7/8/2021 11:14:36'!
+contains: anAccount
+
+	^ self = anAccount.! !
+
+
+!ReceptiveAccount methodsFor: 'structure - private' stamp: 'ML 7/8/2021 15:59:02'!
+accounts
+
+	^Set with: self! !
+
+!ReceptiveAccount methodsFor: 'structure - private' stamp: 'ML 7/8/2021 16:10:29'!
+setParent: aPortfolio
+
+	"Nos dimos cuenta que ReceptiveAccount no necesita la referencia a su padre, pero nos parecio mas
+	conveniente dejar el mensaje vacio para no tener que chequear la clase con isKindOf al agregar algo al portfolio"! !
 
 
 !classDefinition: #AccountTransaction category: 'ServiciosFinancieros-Ejercicio'!
@@ -365,7 +565,12 @@ Object subclass: #AccountTransaction
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!AccountTransaction methodsFor: 'value' stamp: 'HernanWilkinson 9/12/2011 12:25'!
+!AccountTransaction methodsFor: 'value' stamp: 'ML 7/8/2021 11:28:18'!
+effectOnBalance: aBalance
+
+	self subclassResponsibility ! !
+
+!AccountTransaction methodsFor: 'value' stamp: 'ML 7/8/2021 11:27:48'!
 value 
 
 	self subclassResponsibility ! !
@@ -376,7 +581,7 @@ value
 AccountTransaction class
 	instanceVariableNames: ''!
 
-!AccountTransaction class methodsFor: 'instance creation' stamp: 'MC 7/7/2021 20:23:41'!
+!AccountTransaction class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 16:26:52'!
 register: aValue on: account
 
 	| transaction |
@@ -394,22 +599,21 @@ AccountTransaction subclass: #Deposit
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!Deposit methodsFor: 'initialization' stamp: 'HernanWilkinson 7/13/2011 18:45'!
+!Deposit methodsFor: 'value' stamp: 'ML 7/8/2021 16:28:18'!
+effectOnBalance: aBalance
+
+	^ aBalance + value.! !
+
+!Deposit methodsFor: 'value' stamp: 'ML 7/8/2021 16:28:12'!
+value
+	
+	^value! !
+
+
+!Deposit methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:28:47'!
 initializeFor: aValue
 
 	value := aValue ! !
-
-
-!Deposit methodsFor: 'value' stamp: 'HernanWilkinson 7/13/2011 18:38'!
-value
-
-	^ value! !
-
-
-!Deposit methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 14:53:25'!
-effectOnBalance: aBalance
-
-	^ aBalance + self value.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -417,10 +621,92 @@ effectOnBalance: aBalance
 Deposit class
 	instanceVariableNames: ''!
 
-!Deposit class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:38'!
+!Deposit class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 16:25:57'!
 for: aValue
 
 	^ self new initializeFor: aValue ! !
+
+
+!classDefinition: #IncomingTransference category: 'ServiciosFinancieros-Ejercicio'!
+AccountTransaction subclass: #IncomingTransference
+	instanceVariableNames: 'transference'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Ejercicio'!
+
+!IncomingTransference methodsFor: 'counterpart' stamp: 'ML 7/8/2021 15:20:52'!
+counterpart
+
+	^ transference outgoingPart.! !
+
+
+!IncomingTransference methodsFor: 'value' stamp: 'ML 7/8/2021 16:34:05'!
+effectOnBalance: aBalance
+
+	^ aBalance + self value.! !
+
+!IncomingTransference methodsFor: 'value' stamp: 'ML 7/8/2021 16:34:10'!
+value
+
+	^transference value! !
+
+
+!IncomingTransference methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:30:33'!
+initializeFor: aTransference
+
+	transference := aTransference.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'IncomingTransference class' category: 'ServiciosFinancieros-Ejercicio'!
+IncomingTransference class
+	instanceVariableNames: ''!
+
+!IncomingTransference class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 16:31:46'!
+of: aTransference 
+	
+	^ self new initializeFor: aTransference.! !
+
+
+!classDefinition: #OutgoingTransference category: 'ServiciosFinancieros-Ejercicio'!
+AccountTransaction subclass: #OutgoingTransference
+	instanceVariableNames: 'transference'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'ServiciosFinancieros-Ejercicio'!
+
+!OutgoingTransference methodsFor: 'value' stamp: 'ML 7/8/2021 16:33:59'!
+effectOnBalance: aBalance
+
+	^ aBalance - self value.! !
+
+!OutgoingTransference methodsFor: 'value' stamp: 'ML 7/8/2021 16:33:52'!
+value
+
+	^transference value! !
+
+
+!OutgoingTransference methodsFor: 'counterpart' stamp: 'ML 7/8/2021 15:20:52'!
+counterpart
+
+	^ transference incomingPart.! !
+
+
+!OutgoingTransference methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:30:41'!
+initializeFor: aTransference
+
+	transference := aTransference.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'OutgoingTransference class' category: 'ServiciosFinancieros-Ejercicio'!
+OutgoingTransference class
+	instanceVariableNames: ''!
+
+!OutgoingTransference class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 16:31:56'!
+of: aTransference 
+	
+	^ self new initializeFor: aTransference.! !
 
 
 !classDefinition: #Withdraw category: 'ServiciosFinancieros-Ejercicio'!
@@ -430,22 +716,21 @@ AccountTransaction subclass: #Withdraw
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!Withdraw methodsFor: 'initialization' stamp: 'HernanWilkinson 7/13/2011 18:46'!
+!Withdraw methodsFor: 'value' stamp: 'ML 7/8/2021 16:28:23'!
+effectOnBalance: aBalance
+
+	^ aBalance - value.! !
+
+!Withdraw methodsFor: 'value' stamp: 'ML 7/8/2021 16:28:04'!
+value
+	
+	^value! !
+
+
+!Withdraw methodsFor: 'initialization' stamp: 'ML 7/8/2021 16:28:53'!
 initializeFor: aValue
 
 	value := aValue ! !
-
-
-!Withdraw methodsFor: 'value' stamp: 'HernanWilkinson 7/13/2011 18:33'!
-value
-
-	^ value! !
-
-
-!Withdraw methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 14:53:33'!
-effectOnBalance: aBalance
-
-	^ aBalance - self value.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -453,155 +738,42 @@ effectOnBalance: aBalance
 Withdraw class
 	instanceVariableNames: ''!
 
-!Withdraw class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:33'!
+!Withdraw class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 16:26:14'!
 for: aValue
 
 	^ self new initializeFor: aValue ! !
 
 
-!classDefinition: #Portfolio category: 'ServiciosFinancieros-Ejercicio'!
-Object subclass: #Portfolio
-	instanceVariableNames: 'accounts parent'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ServiciosFinancieros-Ejercicio'!
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:23:19'!
-add: anAccount
-	
-	(self containsOrAnyParentContains: anAccount) ifTrue: [ self error: Portfolio accountAlreadyInPortfolioErrorMessage ].
-	
-	accounts add: anAccount.
-	anAccount parent: self.! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:17:14'!
-balance
-
-	accounts ifEmpty: [ ^0 ].
-	^ accounts inject: 0*peso into: [ :currentBalance :anAccount | currentBalance + anAccount balance ].! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:02:56'!
-contains: anAccount
-
-	^ (self = anAccount) or: [ accounts anySatisfy: [ :account | account contains: anAccount ] ].! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:23:19'!
-containsOrAnyParentContains: anAccount
-	
-	parent ifNil: [ ^ self contains: anAccount ].
-	
-	^ parent containsOrAnyParentContains: anAccount.! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:37:22'!
-hasRegistered: aTransaction
-
-    ^ accounts anySatisfy: [ :anAccount | anAccount hasRegistered: aTransaction ].! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:13:08'!
-initialize
-
-	accounts := Set new.! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:44:58'!
-parent: aPortfolio
-
-	parent := aPortfolio.! !
-
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:56:30'!
-transactions
-	
-	| transactions |
-	
-	transactions := OrderedCollection new.
-	
-	accounts do: [ :anAccount | transactions addAll: anAccount transactions. ].
-	
-	^ transactions.! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'Portfolio class' category: 'ServiciosFinancieros-Ejercicio'!
-Portfolio class
-	instanceVariableNames: ''!
-
-!Portfolio class methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:47:34'!
-accountAlreadyInPortfolioErrorMessage
-
-	^ 'Account already in portfolio'! !
-
-
-!classDefinition: #ReceptiveAccount category: 'ServiciosFinancieros-Ejercicio'!
-Object subclass: #ReceptiveAccount
-	instanceVariableNames: 'transactions'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ServiciosFinancieros-Ejercicio'!
-
-!ReceptiveAccount methodsFor: 'initialization' stamp: 'MC 7/6/2021 23:40:46'!
-initialize
-
-	transactions := OrderedCollection new.! !
-
-
-!ReceptiveAccount methodsFor: 'main protocol' stamp: 'MC 7/6/2021 14:54:54'!
-balance
-
-	^ transactions inject: 0*peso into: [ :currentBalance :aTransaction | aTransaction effectOnBalance: currentBalance ].! !
-
-!ReceptiveAccount methodsFor: 'main protocol' stamp: 'MC 7/6/2021 17:33:07'!
-hasRegistered: aTransaction
-
-	^ transactions includes: aTransaction ! !
-
-!ReceptiveAccount methodsFor: 'main protocol' stamp: 'MC 7/6/2021 17:33:13'!
-register: aTransaction
-
-	transactions add: aTransaction
-! !
-
-!ReceptiveAccount methodsFor: 'main protocol' stamp: 'MC 7/6/2021 17:33:19'!
-transactions 
-
-	^ transactions copy! !
-
-
-!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:12:44'!
-contains: anAccount
-
-	^ self = anAccount.! !
-
-!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:46:09'!
-parent: aPortfolio! !
-
-
 !classDefinition: #Transference category: 'ServiciosFinancieros-Ejercicio'!
 Object subclass: #Transference
-	instanceVariableNames: 'value outgoingPart incomingPart'
+	instanceVariableNames: 'value incomingPart outgoingPart'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 16:07:20'!
-incomingPart
-
-	^ incomingPart.! !
-
-!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:29:16'!
-initializeFor: aValue from: aSender to: aReceiver
+!Transference methodsFor: 'initialization' stamp: 'ML 7/8/2021 15:15:15'!
+initializeFor: aValue 
 	
 	value := aValue.
-	outgoingPart := OutgoingTransference of: self.
-	incomingPart := IncomingTransference of: self.! !
+	incomingPart := IncomingTransference of: self.
+	outgoingPart := OutgoingTransference of: self.! !
 
-!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 16:07:35'!
-outgoingPart
 
-	^ outgoingPart.! !
-
-!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 15:14:04'!
+!Transference methodsFor: 'value' stamp: 'ML 7/8/2021 11:33:37'!
 value
 
 	^ value.! !
+
+
+!Transference methodsFor: 'accessing' stamp: 'ML 7/8/2021 15:14:39'!
+incomingPart
+
+	^incomingPart.! !
+
+!Transference methodsFor: 'accessing' stamp: 'ML 7/8/2021 15:14:47'!
+outgoingPart
+
+	^outgoingPart.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -609,113 +781,22 @@ value
 Transference class
 	instanceVariableNames: ''!
 
-!Transference class methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:28:05'!
+!Transference class methodsFor: 'error messages' stamp: 'ML 7/8/2021 11:32:06'!
 invalidTransferenceValueErrorMessage
 
 	^ 'Transfer value cannot be 0 or negative'.! !
 
-!Transference class methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:30:11'!
+
+!Transference class methodsFor: 'instance creation' stamp: 'ML 7/8/2021 14:43:12'!
 register: aValue from: aSender to: aReceiver 
 	
 	| transference |
 	
 	(aValue <= 0) ifTrue: [ self error: self invalidTransferenceValueErrorMessage ].
-	transference := self new initializeFor: aValue from: aSender to: aReceiver.
+	transference := self new initializeFor: aValue.
 	
 	aSender register: transference outgoingPart.
 	aReceiver register: transference incomingPart.
 	
 	^ transference.
 	! !
-
-
-!classDefinition: #TransferencePart category: 'ServiciosFinancieros-Ejercicio'!
-Object subclass: #TransferencePart
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ServiciosFinancieros-Ejercicio'!
-
-!TransferencePart methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:10:14'!
-counterpart
-
-	self subclassResponsibility.! !
-
-!TransferencePart methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:08:36'!
-effectOnBalance: aBalance
-
-	self subclassResponsibility.! !
-
-!TransferencePart methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 16:40:39'!
-value
-
-	self subclassResponsibility.
-
-	! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'TransferencePart class' category: 'ServiciosFinancieros-Ejercicio'!
-TransferencePart class
-	instanceVariableNames: ''!
-
-!TransferencePart class methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:33'!
-of: aTransference 
-	
-	^ self new initializeFor: aTransference.! !
-
-
-!classDefinition: #IncomingTransference category: 'ServiciosFinancieros-Ejercicio'!
-TransferencePart subclass: #IncomingTransference
-	instanceVariableNames: 'transference account'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ServiciosFinancieros-Ejercicio'!
-
-!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:09'!
-counterpart
-
-	^ transference outgoingPart.! !
-
-!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:09'!
-effectOnBalance: aBalance
-
-	^ aBalance + transference value.! !
-
-!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:10'!
-initializeFor: aTransference .
-
-	transference := aTransference.! !
-
-!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:09'!
-value
-
-	^ transference value.! !
-
-
-!classDefinition: #OutgoingTransference category: 'ServiciosFinancieros-Ejercicio'!
-TransferencePart subclass: #OutgoingTransference
-	instanceVariableNames: 'transference account'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ServiciosFinancieros-Ejercicio'!
-
-!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:54'!
-counterpart
-
-	^ transference incomingPart.! !
-
-!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:53'!
-effectOnBalance: aBalance
-
-	^ aBalance - transference value.! !
-
-!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:00'!
-initializeFor: aTransference .
-
-	transference := aTransference.! !
-
-!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:53'!
-value
-
-	^ transference value.! !
