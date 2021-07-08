@@ -87,6 +87,97 @@ test06PortfolioKnowsAllItsAccountsTransactions
 	self assert: portfolio transactions includes: deposit.
 	self assert: portfolio transactions includes: withdrawal.! !
 
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:48:49'!
+test07CannotAddAccountThatIsAlreadyInPortfolio
+
+	| portfolio anAccount |
+	
+	portfolio := Portfolio new.
+	
+	anAccount := ReceptiveAccount new.	
+	portfolio add: anAccount.
+	
+	[ portfolio add: anAccount. self fail. ] 
+		on: Error 
+		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:58:44'!
+test08
+
+	| portfolioA portfolioB anAccount aTransaction |
+	
+	portfolioA := Portfolio new.
+	portfolioB := Portfolio new.
+	
+	anAccount := ReceptiveAccount new.
+	aTransaction := Deposit register: 50*peso on: anAccount.
+	portfolioB add: anAccount.
+	
+	portfolioA add: portfolioB.
+	
+	self assert: 50*peso equals: portfolioA balance.
+	self assert: (portfolioA hasRegistered: aTransaction).
+	! !
+
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:03:19'!
+test09
+
+	| portfolioA portfolioB anAccount |
+	
+	portfolioA := Portfolio new.
+	portfolioB := Portfolio new.
+	
+	anAccount := ReceptiveAccount new.
+	portfolioB add: anAccount.
+	portfolioA add: portfolioB.
+	
+	[portfolioA add: anAccount. self fail.] 
+		on: Error 
+		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:21:17'!
+test10
+
+	| portfolioA portfolioB |
+	
+	portfolioA := Portfolio new.
+	portfolioB := Portfolio new.
+	
+	portfolioA add: portfolioB.
+	
+	[portfolioA add: portfolioB. self fail.] 
+		on: Error 
+		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:33:04'!
+test11
+
+	| portfolioA portfolioB anAccount aTransaction |
+	
+	portfolioA := Portfolio new.
+	portfolioB := Portfolio new.
+	
+	portfolioA add: portfolioB.
+	anAccount := ReceptiveAccount new.
+	aTransaction := Withdraw register: 5*peso on: anAccount.
+	portfolioB add: anAccount.
+	
+	self assert: (portfolioA transactions includes: aTransaction).! !
+
+!PortfolioTest methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:35:51'!
+test12
+
+	| portfolioA portfolioB |
+	
+	portfolioA := Portfolio new.
+	portfolioB := Portfolio new.
+	
+	portfolioA add: portfolioB.
+	
+	[ portfolioB add: portfolioA. self fail. ]
+		on: Error
+		do: [ :anError | self assert: anError messageText = Portfolio accountAlreadyInPortfolioErrorMessage ].! !
+
 
 !classDefinition: #ReceptiveAccountTest category: 'ServiciosFinancieros-Ejercicio'!
 TestCase subclass: #ReceptiveAccountTest
@@ -285,14 +376,14 @@ value
 AccountTransaction class
 	instanceVariableNames: ''!
 
-!AccountTransaction class methodsFor: 'instance creation' stamp: 'NR 10/17/2019 03:22:00'!
+!AccountTransaction class methodsFor: 'instance creation' stamp: 'MC 7/7/2021 20:23:41'!
 register: aValue on: account
 
 	| transaction |
 	
 	transaction := self for: aValue.
 	account register: transaction.
-		
+	
 	^ transaction! !
 
 
@@ -370,21 +461,36 @@ for: aValue
 
 !classDefinition: #Portfolio category: 'ServiciosFinancieros-Ejercicio'!
 Object subclass: #Portfolio
-	instanceVariableNames: 'accounts'
+	instanceVariableNames: 'accounts parent'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'ServiciosFinancieros-Ejercicio'!
 
-!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:13:20'!
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:23:19'!
 add: anAccount
-
-	accounts add: anAccount.! !
+	
+	(self containsOrAnyParentContains: anAccount) ifTrue: [ self error: Portfolio accountAlreadyInPortfolioErrorMessage ].
+	
+	accounts add: anAccount.
+	anAccount parent: self.! !
 
 !Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:17:14'!
 balance
 
 	accounts ifEmpty: [ ^0 ].
 	^ accounts inject: 0*peso into: [ :currentBalance :anAccount | currentBalance + anAccount balance ].! !
+
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:02:56'!
+contains: anAccount
+
+	^ (self = anAccount) or: [ accounts anySatisfy: [ :account | account contains: anAccount ] ].! !
+
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 22:23:19'!
+containsOrAnyParentContains: anAccount
+	
+	parent ifNil: [ ^ self contains: anAccount ].
+	
+	^ parent containsOrAnyParentContains: anAccount.! !
 
 !Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:37:22'!
 hasRegistered: aTransaction
@@ -396,6 +502,11 @@ initialize
 
 	accounts := Set new.! !
 
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:44:58'!
+parent: aPortfolio
+
+	parent := aPortfolio.! !
+
 !Portfolio methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 23:56:30'!
 transactions
 	
@@ -406,6 +517,17 @@ transactions
 	accounts do: [ :anAccount | transactions addAll: anAccount transactions. ].
 	
 	^ transactions.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'Portfolio class' category: 'ServiciosFinancieros-Ejercicio'!
+Portfolio class
+	instanceVariableNames: ''!
+
+!Portfolio class methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:47:34'!
+accountAlreadyInPortfolioErrorMessage
+
+	^ 'Account already in portfolio'! !
 
 
 !classDefinition: #ReceptiveAccount category: 'ServiciosFinancieros-Ejercicio'!
@@ -442,6 +564,15 @@ transactions
 
 	^ transactions copy! !
 
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:12:44'!
+contains: anAccount
+
+	^ self = anAccount.! !
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 21:46:09'!
+parent: aPortfolio! !
+
 
 !classDefinition: #Transference category: 'ServiciosFinancieros-Ejercicio'!
 Object subclass: #Transference
@@ -455,12 +586,12 @@ incomingPart
 
 	^ incomingPart.! !
 
-!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:01:58'!
+!Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:29:16'!
 initializeFor: aValue from: aSender to: aReceiver
 	
 	value := aValue.
-	outgoingPart := OutgoingTransference of: self on: aSender.
-	incomingPart := IncomingTransference of: self on: aReceiver.! !
+	outgoingPart := OutgoingTransference of: self.
+	incomingPart := IncomingTransference of: self.! !
 
 !Transference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 16:07:35'!
 outgoingPart
@@ -528,10 +659,10 @@ value
 TransferencePart class
 	instanceVariableNames: ''!
 
-!TransferencePart class methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:04:50'!
-of: aTransference on: anAccount
+!TransferencePart class methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:33'!
+of: aTransference 
 	
-	^ self new initializeFor: aTransference on: anAccount.! !
+	^ self new initializeFor: aTransference.! !
 
 
 !classDefinition: #IncomingTransference category: 'ServiciosFinancieros-Ejercicio'!
@@ -551,11 +682,10 @@ effectOnBalance: aBalance
 
 	^ aBalance + transference value.! !
 
-!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:09'!
-initializeFor: aTransference on: anAccount.
+!IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:10'!
+initializeFor: aTransference .
 
-	transference := aTransference.
-	account := anAccount.! !
+	transference := aTransference.! !
 
 !IncomingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:09'!
 value
@@ -580,11 +710,10 @@ effectOnBalance: aBalance
 
 	^ aBalance - transference value.! !
 
-!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:53'!
-initializeFor: aTransference on: anAccount.
+!OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/7/2021 20:27:00'!
+initializeFor: aTransference .
 
-	transference := aTransference.
-	account := anAccount.! !
+	transference := aTransference.! !
 
 !OutgoingTransference methodsFor: 'as yet unclassified' stamp: 'MC 7/6/2021 17:12:53'!
 value
