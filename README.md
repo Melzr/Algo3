@@ -3,7 +3,7 @@
 
 Principales temas abordados en la materia:
 
-    - Paradigma fundacional de objetos
+    - Programación orientada a objetos
     - Desarrollo de software mantenible a mediana y gran escala
     - Técnicas y heurísticas de diseño de software
     - Test-Driven Development
